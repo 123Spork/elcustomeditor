@@ -1,9 +1,6 @@
 {
   "name": "powder",
   "version": "0.0.1",
-  "engines": {
-    "node": "12.13.0"
-  },
   "description": "POF Tile Game",
   "author": "Alan Tuckwood",
   "license": "ISC",
