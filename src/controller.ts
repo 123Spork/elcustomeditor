@@ -10,11 +10,16 @@ import {
   ScreenManager,
   ScreenFunction
 } from './managers'
+import { Milestone } from './managers/extraLifeManager'
 
 export interface ScreenData {
   donation?: Donation
   donations?: Donation[]
+  largestDonation?: Donation
+  lastDonation?: Donation
   participant: Participant
+  milestones: Milestone[]
+  nextMilestone?: Milestone
   team: Team
   timer: TimerContent
 }
@@ -28,6 +33,7 @@ export default class Controller {
   constructor(callbacks: {
     onTimerTick: (timerTick: TimerContent) => void
     onNewDonations: (newDonations: Donation[]) => Promise<void>
+    onMilestonesReached: (milestones: Milestone[]) => Promise<void>
     onExtraLifeLoaded: () => Promise<void>
   }) {
     this.soundManager = new SoundManager()
@@ -38,7 +44,8 @@ export default class Controller {
     )
     this.extraLifeManager = new ExtraLifeManager({
       onLoaded: callbacks.onExtraLifeLoaded,
-      onNewDonations: callbacks.onNewDonations
+      onNewDonations: callbacks.onNewDonations,
+      onMilestonesReached: callbacks.onMilestonesReached
     })
   }
 
@@ -100,10 +107,52 @@ export default class Controller {
   }
 
   getData(): ScreenData {
+    const largestDonation =
+      this.extraLifeManager.donations.length > 0
+        ? this.extraLifeManager.donations.sort((a, b) => {
+            return a.amount < b.amount ? 1 : -1
+          })[0]
+        : undefined
+
+    const lastDonation =
+      this.extraLifeManager.donations.length > 0
+        ? this.extraLifeManager.donations.sort((a, b) => {
+            return (
+              new Date(b.createdDateUTC).getTime() -
+              new Date(a.createdDateUTC).getTime()
+            )
+          })[0]
+        : undefined
+
+    let nextMilestone
+    if (this.extraLifeManager.participant) {
+      const orderedMilestones =
+        this.extraLifeManager.milestones.length > 0
+          ? this.extraLifeManager.milestones.sort((a, b) => {
+              return a.fundraisingGoal > b.fundraisingGoal ? 1 : -1
+            })
+          : undefined
+      if (orderedMilestones) {
+        for (let i = 0; i < orderedMilestones.length; i++) {
+          if (
+            orderedMilestones[i].fundraisingGoal >
+            this.extraLifeManager.participant.sumDonations
+          ) {
+            nextMilestone = orderedMilestones[i]
+            break
+          }
+        }
+      }
+    }
+
     return {
       participant: this.extraLifeManager.participant as Participant,
       team: this.extraLifeManager.team as Team,
       donations: this.extraLifeManager.donations,
+      largestDonation: largestDonation,
+      lastDonation: lastDonation,
+      milestones: this.extraLifeManager.milestones,
+      nextMilestone: nextMilestone,
       timer: this.timeManager.currentTick
     }
   }

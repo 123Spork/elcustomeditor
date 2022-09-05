@@ -50,6 +50,22 @@ Window.globalConfiguration = {
         </div>
         `
     },
+    milestoneAlertPopup: (data, controller) => {
+      const defaultSpeech = `Milestone reached! ${data.milestone.description}.`
+      controller.playSound('./assets/sounds/cash.mp3')
+      controller.saySomething(`${defaultSpeech}!`)
+      return `
+    <div class="screen">
+      <div class="donationHead">New Milestone!</div>
+      <div class="donationFrom">
+        {{milestone.description}}
+      </div>
+      <div class="donationAmount">
+        \${{data.milestone.fundraisingGoal}}
+      </div>
+    </div>
+    `
+    },
     gameDayTimer: (data, controller) => {
       return `
         <div class="screen">
@@ -108,6 +124,16 @@ Window.globalConfiguration = {
         }
       }
       controller.addToScreenQueue("gameDayTimer")
+    },
+    onMilestonesReached: (data, controller) => {
+      for (let i = 0; i < data.milestones.length; i++) {
+        const milestone = data.milestones[i]
+        controller.addToScreenQueue('milestoneAlertPopup', 9000, {
+          ...data,
+          milestone: milestone
+        })
+      }
+      controller.addToScreenQueue('gameDayTimer')
     }
   }
 }

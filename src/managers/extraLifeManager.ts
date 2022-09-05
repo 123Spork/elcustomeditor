@@ -72,19 +72,29 @@ export interface Donation {
   message?: string
 }
 
+export interface Milestone {
+  fundraisingGoal: number,
+  description: string
+  milestoneID: string
+  isActive: boolean,
+  isComplete: boolean
+}
+
 let mockManipulations = {
   participant: {},
-  donations: {},
+  donations: [],
+  milestones: [],
   team: {}
 }
 export const updateMockManipulations = (objIn: any) => {
   mockManipulations = {
     participant: { ...mockManipulations.participant, ...objIn.participant },
     team: { ...mockManipulations.team, ...objIn.team },
-    donations: objIn.donations
+    donations: objIn.donations ? objIn.donations : mockManipulations.donations,
+    milestones: objIn.milestones ? objIn.milestones : mockManipulations.milestones,
   }
 }
-updateMockManipulations({donations: testData.donations})
+updateMockManipulations({donations: testData.donations, milestones: testData.milestones})
 
 const mock = async (url: string): Promise<AxiosResponse> => {
   return new Promise((resolve) => {
@@ -96,6 +106,11 @@ const mock = async (url: string): Promise<AxiosResponse> => {
     if (url === `participants/${getConfig().main.participantId}/donations`) {
       resolve({
         data: mockManipulations.donations
+      } as AxiosResponse)
+    }
+    if (url === `participants/${getConfig().main.participantId}/milestones`) {
+      resolve({
+        data: mockManipulations.milestones
       } as AxiosResponse)
     }
     if (url === `teams/${getConfig().main.teamId}`) {
@@ -110,21 +125,30 @@ export class ExtraLifeManager {
   participant: Participant | null
   team: Team | null
   donations: Donation[]
+  milestones: Milestone[]
   handledDonationIds: string[]
+  handledMilestoneIds: string[]
   onNewDonations: (newDonations: Donation[]) => Promise<void>
+  onMilestonesReached: (newMilestones: Milestone[]) => Promise<void>
   onLoaded: () => Promise<void>
 
   constructor(callbacks: {
     onLoaded?: () => Promise<void>
     onNewDonations?: (newDonations: Donation[]) => Promise<void>
+    onMilestonesReached?: (newMilestones: Milestone[]) => Promise<void>
   }) {
     this.participant = null
     this.team = null
     this.donations = []
+    this.milestones = []
     this.handledDonationIds = []
+    this.handledMilestoneIds = []
     this.onNewDonations = callbacks.onNewDonations
       ? callbacks.onNewDonations
       : async (_newDonations: Donation[]) => {}
+    this.onMilestonesReached = callbacks.onMilestonesReached
+      ? callbacks.onMilestonesReached
+      : async (_newMilestones: Milestone[]) => {}
     this.onLoaded = callbacks.onLoaded ? callbacks.onLoaded : async () => {}
     this.initializeApp()
   }
@@ -198,6 +222,18 @@ export class ExtraLifeManager {
     return response.data
   }
 
+  async getMilestones(): Promise<Milestone[]> {
+    let response: AxiosResponse<Milestone[]>
+    try {
+      response = await this.request(
+        `participants/${getConfig().main.participantId}/milestones`
+      )
+    } catch (error) {
+      throw error
+    }
+    return response.data
+  }
+
   async processNewDonations(): Promise<void> {
     const newDonations = this.donations.filter(
       (donation: Donation): boolean =>
@@ -208,6 +244,19 @@ export class ExtraLifeManager {
         newDonations.map((donation): string => donation.donationID)
       )
       await this.onNewDonations(newDonations)
+    }
+  }
+
+  async processNewMilestonesReached(): Promise<void> {
+    const newMilestones = this.milestones.filter(
+      (milestone: Milestone): boolean =>
+        !this.handledMilestoneIds.includes(milestone.milestoneID) && milestone.isActive===true && milestone.isComplete===true
+    )
+    if (newMilestones.length > 0) {
+      this.handledMilestoneIds = this.handledMilestoneIds.concat(
+        newMilestones.map((milestone): string => milestone.milestoneID)
+      )
+      await this.onMilestonesReached(newMilestones)
     }
   }
 
@@ -229,19 +278,35 @@ export class ExtraLifeManager {
     this.processNewDonations()
   }
 
+  createMilestoneMock(milestone: Milestone): void {
+    if (this.participant != null && this.team != null) {
+      this.milestones.push(milestone)
+      updateMockManipulations({
+        milestones: this.milestones
+      })
+    }
+    this.processNewMilestonesReached()
+  }
+
   async initializeApp(): Promise<void> {
     window.setInterval(async () => {
       this.team = await this.getTeamInfo()
       this.participant = await this.getParticipantInfo()
       this.donations = await this.getParticipantDonations()
+      this.milestones = await this.getMilestones()
       await this.processNewDonations()
+      await this.processNewMilestonesReached()
     }, 60000)
     try {
       this.team = await this.getTeamInfo()
       this.participant = await this.getParticipantInfo()
       this.donations = await this.getParticipantDonations()
+      this.milestones = await this.getMilestones()
       this.handledDonationIds = this.donations.map(
         (donation): string => donation.donationID
+      )
+      this.handledMilestoneIds = this.milestones.map(
+        (milestone): string => milestone.milestoneID
       )
     } catch (e) {
       console.log(

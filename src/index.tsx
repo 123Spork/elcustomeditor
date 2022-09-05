@@ -3,7 +3,6 @@ import * as ReactDOM from 'react-dom'
 import {
   Button,
   Card,
-  Col,
   Container,
   Form,
   FormControl,
@@ -21,7 +20,8 @@ import './styles/main.scss'
 
 import Controller, { ScreenData } from './controller'
 import { Donation, TimerContent } from './managers'
-import { createDono, defaultHtml } from './helpers'
+import { createDono, createMilestone, defaultHtml } from './helpers'
+import { Milestone } from './managers/extraLifeManager'
 
 export type CallbackFunction = (
   sceneContentData: ScreenData,
@@ -32,15 +32,20 @@ export class App {
   controller: Controller
   onStart: CallbackFunction
   onNewDonations: CallbackFunction
+  onMilestonesReached: CallbackFunction
   onTimerTick: CallbackFunction
 
   constructor(callbacks: {
     onStart?: CallbackFunction
     onNewDonations?: CallbackFunction
+    onMilestonesReached?: CallbackFunction
     onTimerTick?: CallbackFunction
   }) {
     this.onNewDonations = callbacks.onNewDonations
       ? callbacks.onNewDonations
+      : () => {}
+    this.onMilestonesReached = callbacks.onMilestonesReached
+      ? callbacks.onMilestonesReached
       : () => {}
     this.onStart = callbacks.onStart ? callbacks.onStart : () => {}
     this.onTimerTick = callbacks.onTimerTick ? callbacks.onTimerTick : () => {}
@@ -48,6 +53,7 @@ export class App {
     this.controller = new Controller({
       onTimerTick: this.onTick.bind(this),
       onNewDonations: this.onDonations.bind(this),
+      onMilestonesReached: this.onMilestones.bind(this),
       onExtraLifeLoaded: async () => {
         await this.onStart(this.controller.getData(), this.controller)
       }
@@ -67,6 +73,14 @@ export class App {
   async onDonations(donations: Donation[]) {
     this.onNewDonations(
       { ...this.controller.getData(), donations },
+      this.controller
+    )
+  }
+
+  async onMilestones(milestones: Milestone[]) {
+    debugger;
+    this.onMilestonesReached(
+      { ...this.controller.getData(), milestones },
       this.controller
     )
   }
@@ -136,7 +150,23 @@ class Main extends React.Component {
             : '',
           advancedStyling: style.replace(/^.{6}/gm, '')
         })
+      } else {
+        const head = document.getElementsByTagName('head')[0]
+        head.removeChild(
+          document.getElementById('advancedConfig') as HTMLScriptElement
+        )
+        var newScriptTag = document.createElement('script')
+        newScriptTag.innerHTML = `Window.globalConfiguration = {
+        main: ${JSON.stringify(this.state.mainData, null, 4)},
+        callbacks: ${this.state.advancedEvents},
+        screens:${this.state.advancedScreens}}`
+        newScriptTag.id = 'advancedConfig'
+        head.appendChild(newScriptTag)
+        ;(document.getElementById(
+          'advancedStyle'
+        ) as HTMLStyleElement).innerHTML = this.state.advancedStyling
       }
+
       //@ts-ignore
       const callbacks = Window.globalConfiguration.callbacks
       window.setTimeout(() => {
@@ -229,6 +259,23 @@ class Main extends React.Component {
       }
       this.app = new App(callbacks)
     }, 1000)
+  }
+
+  triggerMilestone() {
+    const amount =
+      Number(
+        (document.getElementById('donoAmount') as HTMLInputElement).value
+      ) || 20
+    if (this.app) {
+      this.app.controller.extraLifeManager.createMilestoneMock(
+        createMilestone(
+          amount,
+          ['Shave your eyebrows!', 'Do 50 pushups!', 'Time for chili sauce!'][
+            Math.floor(Math.random() * 3)
+          ]
+        )
+      )
+    }
   }
 
   triggerDonation() {
@@ -325,8 +372,7 @@ screens:${this.state.advancedScreens}}`
               saveAs(blob, 'ExtraLifeHelper.zip')
             })
           }
-         
-        )       
+        )
       }
     )
   }
@@ -343,51 +389,59 @@ screens:${this.state.advancedScreens}}`
           <Card.Header>Output</Card.Header>
 
           <Card.Body>
-            <Row className="align-items-center">
-              <Col xs="auto">
+            <div id="root">
+              <div id="scene"></div>
+            </div>
+              <Row xs="auto">
                 <InputGroup className="mb-2">
                   <InputGroup.Text>$</InputGroup.Text>
                   <FormControl
                     id="donoAmount"
-                    placeholder="Donation Amount"
+                    placeholder="Amount"
                     type="number"
                   />
                 </InputGroup>
-              </Col>
-              <Col xs="auto">
+              </Row>
+              <Row xs="auto">
                 <InputGroup className="mb-2">
                   <Button
                     variant="success"
                     onClick={this.triggerDonation.bind(this)}
                   >
-                    Trigger
+                    Trigger Donation for Amount
                   </Button>
                 </InputGroup>{' '}
-              </Col>
-              <Col xs="auto">
+              </Row>
+              <Row xs="auto">
                 <InputGroup className="mb-2">
                   <Button
                     variant="success"
                     onClick={this.triggerAnonDonation.bind(this)}
                   >
-                    Trigger Anonymous
+                    Trigger Anonymous Donation for Amount
                   </Button>
                 </InputGroup>{' '}
-              </Col>
-              <Col xs="auto">
+              </Row>
+              <Row xs="auto">
                 <InputGroup className="mb-2">
                   <Button
                     variant="success"
                     onClick={this.triggerDonationWithMessage.bind(this)}
                   >
-                    Trigger With Message
+                    Trigger Donation With Message for Amount
                   </Button>
                 </InputGroup>
-              </Col>
-            </Row>
-            <div id="root">
-              <div id="scene"></div>
-            </div>
+              </Row>
+              <Row xs="auto">
+                <InputGroup className="mb-2">
+                  <Button
+                    variant="success"
+                    onClick={this.triggerMilestone.bind(this)}
+                  >
+                    Trigger Milestone Reached for Amount
+                  </Button>
+                </InputGroup>
+              </Row>
           </Card.Body>
         </Card>{' '}
         <div className="save-block">

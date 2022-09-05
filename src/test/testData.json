@@ -82,5 +82,30 @@
     "sumPledges": 0.0,
     "streamingChannel": "imgur",
     "numDonations": 12
-  }
+  },
+  "milestones":[
+    {
+      "fundraisingGoal": 1000,
+      "description": "Pie in the face!",
+      "milestoneID": "F611075E-B722-E1A7-C91690575DD48210",
+      "isActive": true,
+      "isComplete": true
+    },
+    {
+      "fundraisingGoal": 2500,
+      "description": "I'll eat a spoonful of hot sauce!",
+      "milestoneID": "200F1E52-EDD2-3E85-CD951C029594E855",
+      "isActive": true,
+      "isComplete": true
+    },
+    {
+      "fundraisingGoal": 5000,
+      "description": "I'll dye my hair!",
+      "links": {
+        "donate": "https://try.donordrive.com/index.cfm?fuseaction=donorDrive.participant&participantID=15882&donationAmount=401.50#donate"
+      },
+      "milestoneID": "22BA1A3A-1234-FF6A-394361D3FF9304FF",
+      "isActive": true
+    }
+  ]
 }

@@ -1,5 +1,6 @@
 import { App } from '.'
 import { Donation } from './managers'
+import { Milestone } from './managers/extraLifeManager'
 
 export const createDono = (
   app: App,
@@ -29,6 +30,18 @@ export const createDono = (
   }
 }
 
+export const createMilestone = (
+  amount: number,
+  description: string
+): Milestone => {
+  return{
+    fundraisingGoal: amount,
+    description: description,
+    milestoneID: "887BF6AEB4834E85" + Math.random() * 1000000,
+    isActive: true,
+    isComplete: true
+  }
+}
 
 export const defaultHtml=`<!DOCTYPE html> 
 <html lang="en"> 
