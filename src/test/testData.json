@@ -107,5 +107,30 @@
       "milestoneID": "22BA1A3A-1234-FF6A-394361D3FF9304FF",
       "isActive": true
     }
+  ],
+  "badges":[
+    {
+      "description": "Log your first activity",
+      "isUnlocked": true,
+      "title": "Log your first activity",
+      "unlockedDateUTC": "2020-11-18T19:32:24.373Z",
+      "badgeImageURL": "https://assets.donordrive.com/try/images/$event1444$/badge_41FE3AEF_EFF5_F3B7_2E7C92C797E8D019.png",
+      "badgeCode": "log-your-first-activity"
+    },
+    {
+      "description": "Updated Profile",
+      "isUnlocked": true,
+      "title": "Making it Personal",
+      "unlockedDateUTC": "2019-08-20T17:12:42.407Z",
+      "badgeImageURL": "https://assets.donordrive.com/try/images/badge_2D23D09D_00D7_9BEA_FBA21459ADCB5AD4.png",
+      "badgeCode": "making-it-personal"
+    },
+    {
+      "description": "Log 1,000 Activity Units",
+      "isUnlocked": false,
+      "title": "Log 1,000 Activity Units",
+      "badgeImageURL": "https://assets.donordrive.com/try/images/$event1444$/badge_420B949E_A0B7_558B_57164EF78EF9992E.png",
+      "badgeCode": "log-1-000-activity-units"
+    }
   ]
 }

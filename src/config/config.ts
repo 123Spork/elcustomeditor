@@ -17,6 +17,7 @@ export interface Config {
   onTimerTick: CallbackFunction
   onNewDonations: CallbackFunction
   onMilestonesReached: CallbackFunction
+  onBadgesObtained: CallbackFunction
 }
 
 export const getConfig = (): Config => {

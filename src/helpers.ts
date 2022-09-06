@@ -1,6 +1,6 @@
 import { App } from '.'
 import { Donation } from './managers'
-import { Milestone } from './managers/extraLifeManager'
+import { Badge, Milestone } from './managers/extraLifeManager'
 
 export const createDono = (
   app: App,
@@ -42,6 +42,20 @@ export const createMilestone = (
     isComplete: true
   }
 }
+
+export const createBadge= (
+  description: string
+): Badge => {
+  return{
+    description: description,
+    isUnlocked: true,
+    title: description,
+    unlockedDateUTC: new Date().toDateString(),
+    badgeImageURL: "https://assets.donordrive.com/try/images/$event1444$/badge_41FE3AEF_EFF5_F3B7_2E7C92C797E8D019.png",
+    badgeCode: 'big-badge-' + Math.random() * 1000000
+  }
+}
+
 
 export const defaultHtml=`<!DOCTYPE html> 
 <html lang="en"> 

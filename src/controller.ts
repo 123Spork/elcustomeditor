@@ -10,11 +10,12 @@ import {
   ScreenManager,
   ScreenFunction
 } from './managers'
-import { Milestone } from './managers/extraLifeManager'
+import { Badge, Milestone } from './managers/extraLifeManager'
 
 export interface ScreenData {
   donation?: Donation
   donations?: Donation[]
+  badges: Badge[]
   largestDonation?: Donation
   lastDonation?: Donation
   participant: Participant
@@ -34,6 +35,7 @@ export default class Controller {
     onTimerTick: (timerTick: TimerContent) => void
     onNewDonations: (newDonations: Donation[]) => Promise<void>
     onMilestonesReached: (milestones: Milestone[]) => Promise<void>
+    onBadgesObtained: (badges: Badge[]) => Promise<void>
     onExtraLifeLoaded: () => Promise<void>
   }) {
     this.soundManager = new SoundManager()
@@ -45,7 +47,8 @@ export default class Controller {
     this.extraLifeManager = new ExtraLifeManager({
       onLoaded: callbacks.onExtraLifeLoaded,
       onNewDonations: callbacks.onNewDonations,
-      onMilestonesReached: callbacks.onMilestonesReached
+      onMilestonesReached: callbacks.onMilestonesReached,
+      onBadgesObtained: callbacks.onBadgesObtained
     })
   }
 
@@ -149,6 +152,7 @@ export default class Controller {
       participant: this.extraLifeManager.participant as Participant,
       team: this.extraLifeManager.team as Team,
       donations: this.extraLifeManager.donations,
+      badges: this.extraLifeManager.badges,
       largestDonation: largestDonation,
       lastDonation: lastDonation,
       milestones: this.extraLifeManager.milestones,

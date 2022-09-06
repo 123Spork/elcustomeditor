@@ -20,8 +20,8 @@ import './styles/main.scss'
 
 import Controller, { ScreenData } from './controller'
 import { Donation, TimerContent } from './managers'
-import { createDono, createMilestone, defaultHtml } from './helpers'
-import { Milestone } from './managers/extraLifeManager'
+import { createBadge, createDono, createMilestone, defaultHtml } from './helpers'
+import { Badge, Milestone } from './managers/extraLifeManager'
 
 export type CallbackFunction = (
   sceneContentData: ScreenData,
@@ -33,12 +33,14 @@ export class App {
   onStart: CallbackFunction
   onNewDonations: CallbackFunction
   onMilestonesReached: CallbackFunction
+  onBadgesObtained: CallbackFunction
   onTimerTick: CallbackFunction
 
   constructor(callbacks: {
     onStart?: CallbackFunction
     onNewDonations?: CallbackFunction
     onMilestonesReached?: CallbackFunction
+    onBadgesObtained?: CallbackFunction
     onTimerTick?: CallbackFunction
   }) {
     this.onNewDonations = callbacks.onNewDonations
@@ -47,6 +49,9 @@ export class App {
     this.onMilestonesReached = callbacks.onMilestonesReached
       ? callbacks.onMilestonesReached
       : () => {}
+    this.onBadgesObtained = callbacks.onBadgesObtained
+      ? callbacks.onBadgesObtained
+      : () => {}
     this.onStart = callbacks.onStart ? callbacks.onStart : () => {}
     this.onTimerTick = callbacks.onTimerTick ? callbacks.onTimerTick : () => {}
 
@@ -54,6 +59,7 @@ export class App {
       onTimerTick: this.onTick.bind(this),
       onNewDonations: this.onDonations.bind(this),
       onMilestonesReached: this.onMilestones.bind(this),
+      onBadgesObtained: this.onBadges.bind(this),
       onExtraLifeLoaded: async () => {
         await this.onStart(this.controller.getData(), this.controller)
       }
@@ -80,6 +86,13 @@ export class App {
   async onMilestones(milestones: Milestone[]) {
     this.onMilestonesReached(
       { ...this.controller.getData(), milestones },
+      this.controller
+    )
+  }
+
+  async onBadges(badges: Badge[]) {
+    this.onBadgesObtained(
+      { ...this.controller.getData(), badges },
       this.controller
     )
   }
@@ -260,6 +273,18 @@ class Main extends React.Component {
     }, 1000)
   }
 
+  triggerBadge() {
+    if (this.app) {
+      this.app.controller.extraLifeManager.createBadgeMock(
+        createBadge(
+          ['$100 USD Raised', '$1,000 USD Raised', 'Recruited 50 Team Members'][
+            Math.floor(Math.random() * 3)
+          ]
+        )
+      )
+    }
+  }
+
   triggerMilestone() {
     const amount =
       Number(
@@ -438,6 +463,16 @@ screens:${this.state.advancedScreens}}`
                     onClick={this.triggerMilestone.bind(this)}
                   >
                     Trigger Milestone Reached for Amount
+                  </Button>
+                </InputGroup>
+              </Row>
+              <Row xs="auto">
+                <InputGroup className="mb-2">
+                  <Button
+                    variant="success"
+                    onClick={this.triggerBadge.bind(this)}
+                  >
+                    Trigger Badge Obtained
                   </Button>
                 </InputGroup>
               </Row>

@@ -65,6 +65,19 @@ Window.globalConfiguration = {
     </div>
     `
     },
+    badgeAlertPopup: (data, controller) => {
+      const defaultSpeech = `Badge Obtained! ${data.badge.description}.`
+      controller.playSound('./assets/sounds/cash.mp3')
+      controller.saySomething(`${defaultSpeech}!`)
+      return `
+    <div class="screen">
+      <div class="donationHead">New Badge!</div>
+      <div class="donationFrom">
+        {{badge.description}}
+      </div>
+    </div>
+    `
+    },
     gameDayTimer: (data, controller) => {
       return `
   <div class="screen">
@@ -156,6 +169,16 @@ Window.globalConfiguration = {
         controller.addToScreenQueue('milestoneAlertPopup', 9000, {
           ...data,
           milestone: milestone
+        })
+      }
+      controller.addToScreenQueue('gameDayTimer')
+    },
+    onBadgesObtained: (data, controller) => {
+      for (let i = 0; i < data.badges.length; i++) {
+        const badge = data.badges[i]
+        controller.addToScreenQueue('badgeAlertPopup', 9000, {
+          ...data,
+          badge: badge
         })
       }
       controller.addToScreenQueue('gameDayTimer')
