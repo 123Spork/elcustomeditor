@@ -14,7 +14,7 @@ Window.globalConfiguration = {
         data.donation.displayName ? data.donation.displayName : 'Anonymous'
       } donated \$${data.donation.amount}.`
 
-      controller.playSound('./assets/sounds/sssssscddddddash.mp3')
+      controller.playSound('./assets/sounds/cash.mp3')
       if (amount >= 100) {
         controller.saySomething(`Woah! Thanks! ${defaultSpeech}!`)
       } else {
@@ -66,7 +66,6 @@ Window.globalConfiguration = {
     `
     },
     gameDayTimer: (data, controller) => {
-      controller.saySomething(`Wasupp`)
       return `
   <div class="screen">
     <div class="timer">
