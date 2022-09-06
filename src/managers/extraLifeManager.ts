@@ -373,6 +373,9 @@ export class ExtraLifeManager {
       this.handledMilestoneIds = this.milestones.map(
         (milestone): string => milestone.milestoneID
       )
+      this.handledBadgeCodes = this.badges.map(
+        (badge): string => badge.badgeCode
+      )
     } catch (e) {
       console.log(
         'Issues collecting EL Data. Please retry with the correct identifiers.'
