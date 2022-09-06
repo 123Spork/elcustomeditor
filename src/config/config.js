@@ -1,63 +1,19 @@
 Window.globalConfiguration = {
   main: {
-      "participantId": 491388,
-      "teamId": 60467,
-      "eventStartTimestamp": 1662421458000,
-      "soundVolume": 1,
-      "speechLanguage": "en",
-      "mockEnabled": true
+    participantId: 491388,
+    teamId: 60467,
+    eventStartTimestamp: 1662421458000,
+    soundVolume: 1,
+    speechLanguage: 'en',
+    mockEnabled: true
   },
-  callbacks: {
-    onStart: (data, controller) => {
-      controller.addToScreenQueue('gameDayTimer')
-      window.setInterval(() => {
-        if (controller.screenManager.queuedScreens.length == 0) {
-          controller.addToScreenQueue('extraLifeAdvert', 3000)
-          if(data.donations.length>0){
-            controller.addToScreenQueue('topDonor', 3000)
-            controller.addToScreenQueue('lastDonor', 3000)
-          }
-          controller.addToScreenQueue('nextMilestone', 3000)
-          controller.addToScreenQueue('gameDayTimer')
-        }
-      }, 15000)
-    },
-    onNewDonations: (data, controller) => {
-      for (let i = 0; i < data.donations.length; i++) {
-        const donation = data.donations[i]
-        controller.addToScreenQueue('donationAlertPopup', 9000, {
-          ...data,
-          donation: donation
-        })
-        if (donation.message) {
-          controller.addToScreenQueue('donationMessagePopup', 10000, {
-            ...data,
-            donation: donation
-          })
-        }
-      }
-      controller.addToScreenQueue('gameDayTimer')
-    },
-    onMilestonesReached: (data, controller) => {
-      for (let i = 0; i < data.milestones.length; i++) {
-        const milestone = data.milestones[i]
-        controller.addToScreenQueue('milestoneAlertPopup', 9000, {
-          ...data,
-          milestone: milestone
-        })
-      }
-      controller.addToScreenQueue('gameDayTimer')
-    }
-  },
-  screens:{
+  screens: {
     donationAlertPopup: (data, controller) => {
       const amount = Number(data.donation.amount)
       const defaultSpeech = `${
-        data.donation.displayName
-          ? data.donation.displayName
-          : 'Anonymous'
+        data.donation.displayName ? data.donation.displayName : 'Anonymous'
       } donated \$${data.donation.amount}.`
-  
+
       controller.playSound('./assets/sounds/sssssscddddddash.mp3')
       if (amount >= 100) {
         controller.saySomething(`Woah! Thanks! ${defaultSpeech}!`)
@@ -79,9 +35,7 @@ Window.globalConfiguration = {
     donationMessagePopup: (data, controller) => {
       controller.saySomething(
         `${
-          data.donation.displayName
-            ? data.donation.displayName
-            : 'Anonymous'
+          data.donation.displayName ? data.donation.displayName : 'Anonymous'
         } says ${data.donation.message}.`
       )
       return `
@@ -95,7 +49,7 @@ Window.globalConfiguration = {
   </div>
   `
     },
-     milestoneAlertPopup: (data, controller) => {
+    milestoneAlertPopup: (data, controller) => {
       const defaultSpeech = `Milestone reached! ${data.milestone.description}.`
       controller.playSound('./assets/sounds/cash.mp3')
       controller.saySomething(`${defaultSpeech}!`)
@@ -147,19 +101,65 @@ Window.globalConfiguration = {
       return `
   <div class="screen">
     <div class="largestDonator">
-      Last Donator: ${data.lastDonation.displayName ||
-        'Anonymous'} with \$${data.lastDonation.amount}
+      Last Donator: ${data.lastDonation.displayName || 'Anonymous'} with \$${
+        data.lastDonation.amount
+      }
     </div>
   </div>
-  `},
+  `
+    },
     nextMilestone: (data, controller) => {
       return `
   <div class="screen">
     <div class="largestDonator">
-      Next Milestone: ${data.nextMilestone.description ||
-        'Anonymous'} with \$${data.nextMilestone.fundraisingGoal}
+      Next Milestone: ${data.nextMilestone.description || 'Anonymous'} with \$${
+        data.nextMilestone.fundraisingGoal
+      }
     </div>
   </div>
   `
     }
-  }}
+  },
+  callbacks: {
+    onStart: (data, controller) => {
+      controller.addToScreenQueue('gameDayTimer')
+      window.setInterval(() => {
+        if (controller.screenManager.queuedScreens.length == 0) {
+          controller.addToScreenQueue('extraLifeAdvert', 3000)
+          if (data.donations.length > 0) {
+            controller.addToScreenQueue('topDonor', 3000)
+            controller.addToScreenQueue('lastDonor', 3000)
+          }
+          controller.addToScreenQueue('nextMilestone', 3000)
+          controller.addToScreenQueue('gameDayTimer')
+        }
+      }, 15000)
+    },
+    onNewDonations: (data, controller) => {
+      for (let i = 0; i < data.donations.length; i++) {
+        const donation = data.donations[i]
+        controller.addToScreenQueue('donationAlertPopup', 9000, {
+          ...data,
+          donation: donation
+        })
+        if (donation.message) {
+          controller.addToScreenQueue('donationMessagePopup', 10000, {
+            ...data,
+            donation: donation
+          })
+        }
+      }
+      controller.addToScreenQueue('gameDayTimer')
+    },
+    onMilestonesReached: (data, controller) => {
+      for (let i = 0; i < data.milestones.length; i++) {
+        const milestone = data.milestones[i]
+        controller.addToScreenQueue('milestoneAlertPopup', 9000, {
+          ...data,
+          milestone: milestone
+        })
+      }
+      controller.addToScreenQueue('gameDayTimer')
+    }
+  },
+}

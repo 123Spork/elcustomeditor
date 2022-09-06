@@ -78,7 +78,6 @@ export class App {
   }
 
   async onMilestones(milestones: Milestone[]) {
-    debugger;
     this.onMilestonesReached(
       { ...this.controller.getData(), milestones },
       this.controller
@@ -135,10 +134,10 @@ class Main extends React.Component {
         ) as HTMLStyleElement).innerHTML
 
         const screensMatch = config.match(
-          /(?<=.{2}screens: )(\s|\S)*^.{8}}(?=,$)/gm
+          /(?<=.{2}screens: )(\s|\S)*^.{8}}(?=$)/gm
         )
         const eventsMatch = config.match(
-          /(?<=.{2}callbacks: )(\s|\S)*^.{8}}(?=$)/gm
+          /(?<=.{2}callbacks: )(\s|\S)*^.{8}}(?=,$)/gm
         )
 
         this.setState({
