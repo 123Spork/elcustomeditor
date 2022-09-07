@@ -6,7 +6,8 @@ export const createDono = (
   app: App,
   amount: number,
   username?: string,
-  message?: string
+  message?: string,
+  incentiveID?: string
 ): Donation => {
   return {
     displayName: username,
@@ -26,7 +27,8 @@ export const createDono = (
     avatarImageURL:
       'https: //assets.donordrive.com/extralife/images/$avatars$/constituent_5E485D81-FEBE-E8F6-CD1127106E1536BD.jpg',
     teamID: 55961,
-    donationID: '887BF6AEB4834E85' + Math.random() * 1000000
+    donationID: '887BF6AEB4834E85' + Math.random() * 1000000,
+    incentiveID: incentiveID
   }
 }
 

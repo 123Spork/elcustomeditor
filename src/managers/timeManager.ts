@@ -21,6 +21,10 @@ export class TimeManager {
     window.setInterval(this.tick, 1000)
   }
 
+  isCountingDown(): boolean {
+    return (new Date()).getTime() < this.eventTime
+  }
+
   tick(): void {
     const now = new Date().getTime()
     let distance =

@@ -42,10 +42,6 @@ export class ScreenManager {
   }
 
   async processNextScreen() {
-    if (this.queuedScreens.length < 1) {
-      this.isDirty = true
-      return
-    }
     this.currentScreen = this.queuedScreens[0]
     await this.loadScreen(this.currentScreen)
     window.setTimeout(() => {

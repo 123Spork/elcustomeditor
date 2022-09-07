@@ -20,8 +20,13 @@ import './styles/main.scss'
 
 import Controller, { ScreenData } from './controller'
 import { Donation, TimerContent } from './managers'
-import { createBadge, createDono, createMilestone, defaultHtml } from './helpers'
-import { Badge, Milestone } from './managers/extraLifeManager'
+import {
+  createBadge,
+  createDono,
+  createMilestone,
+  defaultHtml
+} from './helpers'
+import { Badge, Incentive, Milestone } from './managers/extraLifeManager'
 
 export type CallbackFunction = (
   sceneContentData: ScreenData,
@@ -33,6 +38,7 @@ export class App {
   onStart: CallbackFunction
   onNewDonations: CallbackFunction
   onMilestonesReached: CallbackFunction
+  onIncentivesPurchased: CallbackFunction
   onBadgesObtained: CallbackFunction
   onTimerTick: CallbackFunction
 
@@ -40,6 +46,7 @@ export class App {
     onStart?: CallbackFunction
     onNewDonations?: CallbackFunction
     onMilestonesReached?: CallbackFunction
+    onIncentivesPurchased?: CallbackFunction
     onBadgesObtained?: CallbackFunction
     onTimerTick?: CallbackFunction
   }) {
@@ -48,6 +55,9 @@ export class App {
       : () => {}
     this.onMilestonesReached = callbacks.onMilestonesReached
       ? callbacks.onMilestonesReached
+      : () => {}
+    this.onIncentivesPurchased = callbacks.onIncentivesPurchased
+      ? callbacks.onIncentivesPurchased
       : () => {}
     this.onBadgesObtained = callbacks.onBadgesObtained
       ? callbacks.onBadgesObtained
@@ -59,6 +69,7 @@ export class App {
       onTimerTick: this.onTick.bind(this),
       onNewDonations: this.onDonations.bind(this),
       onMilestonesReached: this.onMilestones.bind(this),
+      onIncentivesPurchased: this.onIncentives.bind(this),
       onBadgesObtained: this.onBadges.bind(this),
       onExtraLifeLoaded: async () => {
         await this.onStart(this.controller.getData(), this.controller)
@@ -93,6 +104,13 @@ export class App {
   async onBadges(badges: Badge[]) {
     this.onBadgesObtained(
       { ...this.controller.getData(), badges },
+      this.controller
+    )
+  }
+
+  async onIncentives(incentives: Incentive[]) {
+    this.onIncentivesPurchased(
+      { ...this.controller.getData(), incentives },
       this.controller
     )
   }
@@ -340,6 +358,44 @@ class Main extends React.Component {
     }
   }
 
+  triggerDonationWithIncentive() {
+    const amount =
+      Number(
+        (document.getElementById('donoAmount') as HTMLInputElement).value
+      ) || 20
+
+    if (this.app && this.app.controller.extraLifeManager.team != null) {
+      this.app.controller.extraLifeManager.createDonationMock(
+        createDono(
+          this.app,
+          amount,
+          'Joseph Jones',
+          undefined,
+          '74885F1C-0A20-4CA1-011F56911302E557'
+        )
+      )
+    }
+  }
+
+  triggerDonationWithIncentiveAndMessage() {
+    const amount =
+      Number(
+        (document.getElementById('donoAmount') as HTMLInputElement).value
+      ) || 20
+
+    if (this.app && this.app.controller.extraLifeManager.team != null) {
+      this.app.controller.extraLifeManager.createDonationMock(
+        createDono(
+          this.app,
+          amount,
+          'Joseph Jones',
+          'So long and thanks for all the fish',
+          '74885F1C-0A20-4CA1-011F56911302E557'
+        )
+      )
+    }
+  }
+
   async downloadPack() {
     const date = (document.getElementById('dateStamp') as HTMLInputElement)
       .value
@@ -416,66 +472,88 @@ screens:${this.state.advancedScreens}}`
             <div id="root">
               <div id="scene"></div>
             </div>
-              <Row xs="auto">
-                <InputGroup className="mb-2">
-                  <InputGroup.Text>$</InputGroup.Text>
-                  <FormControl
-                    id="donoAmount"
-                    placeholder="Amount"
-                    type="number"
-                  />
-                </InputGroup>
-              </Row>
-              <Row xs="auto">
-                <InputGroup className="mb-2">
-                  <Button
-                    variant="success"
-                    onClick={this.triggerDonation.bind(this)}
-                  >
-                    Trigger Donation for Amount
-                  </Button>
-                </InputGroup>{' '}
-              </Row>
-              <Row xs="auto">
-                <InputGroup className="mb-2">
-                  <Button
-                    variant="success"
-                    onClick={this.triggerAnonDonation.bind(this)}
-                  >
-                    Trigger Anonymous Donation for Amount
-                  </Button>
-                </InputGroup>{' '}
-              </Row>
-              <Row xs="auto">
-                <InputGroup className="mb-2">
-                  <Button
-                    variant="success"
-                    onClick={this.triggerDonationWithMessage.bind(this)}
-                  >
-                    Trigger Donation With Message for Amount
-                  </Button>
-                </InputGroup>
-              </Row>
-              <Row xs="auto">
-                <InputGroup className="mb-2">
-                  <Button
-                    variant="success"
-                    onClick={this.triggerMilestone.bind(this)}
-                  >
-                    Trigger Milestone Reached for Amount
-                  </Button>
-                </InputGroup>
-              </Row>
-              <Row xs="auto">
-                <InputGroup className="mb-2">
-                  <Button
-                    variant="success"
-                    onClick={this.triggerBadge.bind(this)}
-                  >
-                    Trigger Badge Obtained
-                  </Button>
-                </InputGroup>
-              </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <InputGroup.Text>$</InputGroup.Text>
+                <FormControl
+                  id="donoAmount"
+                  placeholder="Amount"
+                  type="number"
+                />
+              </InputGroup>
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerDonation.bind(this)}
+                >
+                  Trigger Donation for Amount
+                </Button>
+              </InputGroup>{' '}
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerAnonDonation.bind(this)}
+                >
+                  Trigger Anonymous Donation for Amount
+                </Button>
+              </InputGroup>{' '}
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerDonationWithMessage.bind(this)}
+                >
+                  Trigger Donation With Message for Amount
+                </Button>
+              </InputGroup>
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerDonationWithIncentive.bind(this)}
+                >
+                  Trigger Donation With Incentive for Amount
+                </Button>
+              </InputGroup>
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerDonationWithIncentiveAndMessage.bind(
+                    this
+                  )}
+                >
+                  Trigger Donation With Incentive & Message for Amount
+                </Button>
+              </InputGroup>
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerMilestone.bind(this)}
+                >
+                  Trigger Milestone Reached for Amount
+                </Button>
+              </InputGroup>
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerBadge.bind(this)}
+                >
+                  Trigger Badge Obtained
+                </Button>
+              </InputGroup>
+            </Row>
           </Card.Body>
         </Card>{' '}
         <div className="save-block">
@@ -523,7 +601,11 @@ screens:${this.state.advancedScreens}}`
 
             <Form.Group className="mb-3" controlId="dateStamp">
               <Form.Label>Event Start Date/ Time</Form.Label>
-              <Form.Control defaultValue={new Date().toLocaleString()} />
+              <Form.Control
+                defaultValue={new Date(
+                  this.state.mainData.eventStartTimestamp
+                ).toLocaleString()}
+              />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="mockSelect">

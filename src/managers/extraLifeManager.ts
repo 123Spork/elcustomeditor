@@ -70,31 +70,46 @@ export interface Donation {
   teamID: number
   donationID: string
   message?: string
+  incentiveID?: string
 }
 
 export interface Milestone {
-  fundraisingGoal: number,
+  fundraisingGoal: number
   description: string
   milestoneID: string
-  isActive: boolean,
+  isActive: boolean
   isComplete: boolean
 }
 
 export interface Badge {
-  description: string,
-  isUnlocked: boolean,
+  description: string
+  isUnlocked: boolean
   title: string
   unlockedDateUTC: string
   badgeImageURL: string
   badgeCode: string
 }
 
+export interface Incentive {
+  amount: number
+  description: string
+  incentiveImageURL: string
+  quantity: number
+  quantityClaimed: number
+  links: {
+    donate: string
+  }
+  incentiveID: string
+  isActive: boolean
+  donation?: Donation
+}
 
 let mockManipulations = {
   participant: {},
   donations: [],
   milestones: [],
-  badges:[],
+  badges: [],
+  incentives: [],
   team: {}
 }
 export const updateMockManipulations = (objIn: any) => {
@@ -102,11 +117,21 @@ export const updateMockManipulations = (objIn: any) => {
     participant: { ...mockManipulations.participant, ...objIn.participant },
     team: { ...mockManipulations.team, ...objIn.team },
     donations: objIn.donations ? objIn.donations : mockManipulations.donations,
-    milestones: objIn.milestones ? objIn.milestones : mockManipulations.milestones,
-    badges: objIn.badges ? objIn.badges : mockManipulations.badges,
+    milestones: objIn.milestones
+      ? objIn.milestones
+      : mockManipulations.milestones,
+    incentives: objIn.incentives
+      ? objIn.incentives
+      : mockManipulations.incentives,
+    badges: objIn.badges ? objIn.badges : mockManipulations.badges
   }
 }
-updateMockManipulations({donations: testData.donations, milestones: testData.milestones, badges: testData.badges})
+updateMockManipulations({
+  donations: testData.donations,
+  milestones: testData.milestones,
+  badges: testData.badges,
+  incentives: testData.incentives
+})
 
 const mock = async (url: string): Promise<AxiosResponse> => {
   return new Promise((resolve) => {
@@ -123,6 +148,11 @@ const mock = async (url: string): Promise<AxiosResponse> => {
     if (url === `participants/${getConfig().main.participantId}/milestones`) {
       resolve({
         data: mockManipulations.milestones
+      } as AxiosResponse)
+    }
+    if (url === `participants/${getConfig().main.participantId}/incentives`) {
+      resolve({
+        data: mockManipulations.incentives
       } as AxiosResponse)
     }
     if (url === `participants/${getConfig().main.participantId}/badges`) {
@@ -144,11 +174,14 @@ export class ExtraLifeManager {
   donations: Donation[]
   milestones: Milestone[]
   badges: Badge[]
+  incentives: Incentive[]
+  incentivesDictionary: {[key:string]: Incentive}
   handledDonationIds: string[]
   handledMilestoneIds: string[]
   handledBadgeCodes: string[]
   onNewDonations: (newDonations: Donation[]) => Promise<void>
   onMilestonesReached: (newMilestones: Milestone[]) => Promise<void>
+  onIncentivesPurchased: (incentive: Incentive[]) => Promise<void>
   onBadgesObtained: (newMilestones: Badge[]) => Promise<void>
   onLoaded: () => Promise<void>
 
@@ -156,6 +189,7 @@ export class ExtraLifeManager {
     onLoaded?: () => Promise<void>
     onNewDonations?: (newDonations: Donation[]) => Promise<void>
     onMilestonesReached?: (newMilestones: Milestone[]) => Promise<void>
+    onIncentivesPurchased: (incentive: Incentive[]) => Promise<void>
     onBadgesObtained?: (badgesObtained: Badge[]) => Promise<void>
   }) {
     this.participant = null
@@ -163,6 +197,8 @@ export class ExtraLifeManager {
     this.donations = []
     this.milestones = []
     this.badges = []
+    this.incentives = []
+    this.incentivesDictionary = {}
     this.handledDonationIds = []
     this.handledMilestoneIds = []
     this.handledBadgeCodes = []
@@ -172,6 +208,9 @@ export class ExtraLifeManager {
     this.onMilestonesReached = callbacks.onMilestonesReached
       ? callbacks.onMilestonesReached
       : async (_newMilestones: Milestone[]) => {}
+    this.onIncentivesPurchased = callbacks.onIncentivesPurchased
+      ? callbacks.onIncentivesPurchased
+      : async (_incentive: Incentive[]) => {}
     this.onBadgesObtained = callbacks.onBadgesObtained
       ? callbacks.onBadgesObtained
       : async (_badgesObtained: Badge[]) => {}
@@ -207,6 +246,18 @@ export class ExtraLifeManager {
     try {
       response = await this.request(
         `participants/${getConfig().main.participantId}/donations`
+      )
+    } catch (error) {
+      throw error
+    }
+    return response.data
+  }
+
+  async getIncentives(): Promise<Incentive[]> {
+    let response: AxiosResponse<Incentive[]>
+    try {
+      response = await this.request(
+        `participants/${getConfig().main.participantId}/incentives`
       )
     } catch (error) {
       throw error
@@ -282,13 +333,33 @@ export class ExtraLifeManager {
         newDonations.map((donation): string => donation.donationID)
       )
       await this.onNewDonations(newDonations)
+      let newIncentives: Incentive[] = []
+      for (let i = 0; i < newDonations.length; i++) {
+        if (newDonations[i].incentiveID!==undefined && this.incentivesDictionary[newDonations[i].incentiveID as string]) {
+          let incentive:Incentive = JSON.parse(JSON.stringify(this.incentivesDictionary[newDonations[i].incentiveID as string]))
+          incentive.donation = newDonations[i]
+          newIncentives.push(incentive)
+        }
+      }
+      if(newIncentives.length>0){
+        await this.onIncentivesPurchased(newIncentives)
+      }
+    }
+  }
+
+  async processIncentives(): Promise<void> {
+    this.incentivesDictionary = {}
+    for(let i=0;i<this.incentives.length;i++){
+      this.incentivesDictionary[this.incentives[i].incentiveID] = this.incentives[i]
     }
   }
 
   async processNewMilestonesReached(): Promise<void> {
     const newMilestones = this.milestones.filter(
       (milestone: Milestone): boolean =>
-        !this.handledMilestoneIds.includes(milestone.milestoneID) && milestone.isActive===true && milestone.isComplete===true
+        !this.handledMilestoneIds.includes(milestone.milestoneID) &&
+        milestone.isActive === true &&
+        milestone.isComplete === true
     )
     if (newMilestones.length > 0) {
       this.handledMilestoneIds = this.handledMilestoneIds.concat(
@@ -301,7 +372,8 @@ export class ExtraLifeManager {
   async processNewBadgesObtained(): Promise<void> {
     const newBadges = this.badges.filter(
       (badge: Badge): boolean =>
-        !this.handledBadgeCodes.includes(badge.badgeCode) && badge.isUnlocked===true
+        !this.handledBadgeCodes.includes(badge.badgeCode) &&
+        badge.isUnlocked === true
     )
     if (newBadges.length > 0) {
       this.handledBadgeCodes = this.handledBadgeCodes.concat(
@@ -356,6 +428,8 @@ export class ExtraLifeManager {
       this.donations = await this.getParticipantDonations()
       this.milestones = await this.getMilestones()
       this.badges = await this.getBadges()
+      this.incentives = await this.getIncentives()
+      await this.processIncentives()
       await this.processNewDonations()
       await this.processNewMilestonesReached()
       await this.processNewBadgesObtained()
@@ -367,6 +441,8 @@ export class ExtraLifeManager {
       this.donations = await this.getParticipantDonations()
       this.milestones = await this.getMilestones()
       this.badges = await this.getBadges()
+      this.incentives = await this.getIncentives()
+      await this.processIncentives()
       this.handledDonationIds = this.donations.map(
         (donation): string => donation.donationID
       )

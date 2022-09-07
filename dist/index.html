@@ -12,12 +12,25 @@
             controller.addToScreenQueue('gameDayTimer')
             window.setInterval(() => {
               if (controller.screenManager.queuedScreens.length == 0) {
-                controller.addToScreenQueue('extraLifeAdvert', 3000)
-                if (data.donations.length > 0) {
-                  controller.addToScreenQueue('topDonor', 3000)
-                  controller.addToScreenQueue('lastDonor', 3000)
+                const random = Math.floor(Math.random() * 4)
+                switch (random) {
+                  case 0:
+                    controller.addToScreenQueue('extraLifeAdvert', 3000)
+                    break
+                  case 1:
+                    controller.addToScreenQueue('nextMilestone', 3000)
+                    break
+                  case 2:
+                    data.donations.length > 0
+                      ? controller.addToScreenQueue('topDonor', 3000)
+                      : null
+                    break
+                  case 3:
+                    data.donations.length > 0
+                      ? controller.addToScreenQueue('lastDonor', 3000)
+                      : null
+                    break
                 }
-                controller.addToScreenQueue('nextMilestone', 3000)
                 controller.addToScreenQueue('gameDayTimer')
               }
             }, 15000)
@@ -35,6 +48,16 @@
                   donation: donation
                 })
               }
+            }
+            controller.addToScreenQueue('gameDayTimer')
+          },
+          onIncentivesPurchased: (data, controller) => {
+            for (let i = 0; i < data.incentives.length; i++) {
+              const incentive = data.incentives[i]
+              controller.addToScreenQueue('incentiveAlertPopup', 9000, {
+                ...data,
+                incentive: incentive
+              })
             }
             controller.addToScreenQueue('gameDayTimer')
           },
@@ -63,7 +86,9 @@
           donationAlertPopup: (data, controller) => {
             const amount = Number(data.donation.amount)
             const defaultSpeech = `${
-              data.donation.displayName ? data.donation.displayName : 'Anonymous'
+              data.donation.displayName
+                ? data.donation.displayName
+                : 'Anonymous'
             } donated \$${data.donation.amount}.`
 
             controller.playSound('./assets/sounds/cash.mp3')
@@ -72,126 +97,260 @@
             } else {
               controller.saySomething(`${defaultSpeech}!`)
             }
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-          <div class="screen">
-            <div class="donationHead">New Donation!</div>
-            <div class="donationFrom">
-              {{#donation.displayName}}{{donation.displayName}}{{/donation.displayName}}{{^donation.displayName}}Anonymous{{/donation.displayName}}
-            </div>
-            <div class="donationAmount">
-              \${{donation.amount}}
-            </div>
-          </div>
-          `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="donation">
+                  \${{donation.amount}} Donated by {{#donation.displayName}}{{donation.displayName}}{{/donation.displayName}}{{^donation.displayName}}Anonymous{{/donation.displayName}}
+                </div>
+              </div>
+            `
           },
           donationMessagePopup: (data, controller) => {
             controller.saySomething(
               `${
-                data.donation.displayName ? data.donation.displayName : 'Anonymous'
+                data.donation.displayName
+                  ? data.donation.displayName
+                  : 'Anonymous'
               } says ${data.donation.message}.`
             )
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-        <div class="screen">
-          <div class="donationMessageFrom">
-            "{{donation.message}}"
-          </div>
-          <div class="donationMessageHead">
-            {{#donation.displayName}}{{donation.displayName}}{{/donation.displayName}}{{^donation.displayName}}Anonymous{{/donation.displayName}}
-          </div>
-        </div>
-        `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="donationMessage">
+                  "{{donation.message}}"
+                </div>
+              </div>
+            `
+          },
+          incentiveAlertPopup: (data, controller) => {
+            controller.saySomething(
+              `Incentive purchased. ${data.incentive.description}. Bought by ${
+                data.incentive.donation.displayName
+                  ? data.incentive.donation.displayName
+                  : 'Anonymous'
+              }.`
+            )
+            const isCountingDown = controller.isTimerCountingDown()
+            return `
+              <div class="screen">
+                  <div class="timer">
+                    <div class="timerBody">
+                      <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                        ${
+                          isCountingDown
+                            ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                            : ''
+                        }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                      </div>
+                    </div>
+                  </div>
+                <div class="incentive">
+                  New Incentive!<br/>"{{incentive.description}}"
+                </div>
+              </div>
+            `
           },
           milestoneAlertPopup: (data, controller) => {
-            const defaultSpeech = `Milestone reached! ${data.milestone.description}.`
+            const defaultSpeech = `$${data.milestone.fundraisingGoal} Milestone reached! ${data.milestone.description}.`
             controller.playSound('./assets/sounds/cash.mp3')
             controller.saySomething(`${defaultSpeech}!`)
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-          <div class="screen">
-            <div class="donationHead">New Milestone!</div>
-            <div class="donationFrom">
-              {{milestone.description}}
-            </div>
-            <div class="donationAmount">
-              \${{data.milestone.fundraisingGoal}}
-            </div>
-          </div>
-          `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="milestone">
+                  \${{milestone.fundraisingGoal}} Reached!<br/>
+                  {{milestone.description}}
+                </div>
+              </div>
+            `
           },
           badgeAlertPopup: (data, controller) => {
             const defaultSpeech = `Badge Obtained! ${data.badge.description}.`
             controller.playSound('./assets/sounds/cash.mp3')
             controller.saySomething(`${defaultSpeech}!`)
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-          <div class="screen">
-            <div class="donationHead">New Badge!</div>
-            <div class="donationFrom">
-              {{badge.description}}
-            </div>
-          </div>
-          `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="badge">
+                  New Badge!<br/>
+                  {{badge.description}}
+                </div>
+              </div>
+            `
           },
           gameDayTimer: (data, controller) => {
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-        <div class="screen">
-          <div class="timer">
-            <div class="timerHead">Time Streamed</div>
-            <div class="timerBody"><div id="timer">{{timer.DD}}d:{{timer.hh}}:{{timer.mm}}:{{timer.ss}}</div></div>
-          </div>
-          <div class="amountRaised">
-            <div class="amountRaisedHead">Amount Raised</div>
-            <div class="amountRaisedBody">\${{participant.sumDonations}}/\${{participant.fundraisingGoal}}</div>
-          </div>
-        </div>
-        `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="amountRaised">
+                  <div class="amountRaisedBody">\${{participant.sumDonations}} / \${{participant.fundraisingGoal}}</div>
+                </div>
+              </div>
+            `
           },
           extraLifeAdvert: (data, controller) => {
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-        <div class="screen">
-            <div class="advert">Donate to me. I'm a cool guy.</div>
-        </div>
-        `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="advert">
+                  Play Games. Save Kids.
+                </div>
+              </div>
+            `
           },
           topDonor: (data, controller) => {
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-        <div class="screen">
-          <div class="largestDonator">
-            Largest Donator: ${data.largestDonation.displayName ||
-              'Anonymous'} with \$${data.largestDonation.amount}
-          </div>
-        </div>
-        `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="largestDonator">
+                  Largest Donator<br/>${data.largestDonation.displayName ||
+                    'Anonymous'}<br/>\$${data.largestDonation.amount}
+                </div>
+              </div>
+            `
           },
           lastDonor: (data, controller) => {
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-        <div class="screen">
-          <div class="largestDonator">
-            Last Donator: ${data.lastDonation.displayName || 'Anonymous'} with \$${
-              data.lastDonation.amount
-            }
-          </div>
-        </div>
-        `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="lastDonator">
+                  Last Donator<br/>
+                  ${data.lastDonation.displayName || 'Anonymous'}<br/>\$${
+                      data.lastDonation.amount
+                    }
+                </div>
+              </div>
+            `
           },
           nextMilestone: (data, controller) => {
+            const isCountingDown = controller.isTimerCountingDown()
             return `
-        <div class="screen">
-          <div class="largestDonator">
-            Next Milestone: ${data.nextMilestone.description || 'Anonymous'} with \$${
-              data.nextMilestone.fundraisingGoal
-            }
-          </div>
-        </div>
-        `
+              <div class="screen">
+                <div class="timer">
+                  <div class="timerBody">
+                    <div id="timer" class="${isCountingDown ? 'countdown' : ''}">
+                      ${
+                        isCountingDown
+                          ? '<div class="timeUntilLabel">Time Until Event</div>{{#timer.DD>0}}{{timer.DD}}:{{/timer.DD>0}}'
+                          : ''
+                      }{{timer.hh}}:{{timer.mm}}:{{timer.ss}}
+                    </div>
+                  </div>
+                </div>
+                <div class="next-milestone">
+                  In just \$${data.nextMilestone.fundraisingGoal -
+                    data.participant.sumDonations}...<br/>
+                  ${data.nextMilestone.description}
+                </div>
+              </div>
+            `
           }
         }
-      }</script><style id="advancedStyle">body {
+      }</script><style id="advancedStyle">@import url(//fonts.googleapis.com/css?family=Raleway:400,100,200,300,500,600,800,700,900);
+
+      body{
         margin: 0px;
         padding: 0px;
         height: -webkit-fill-available;
         width: -webkit-fill-available;
         background-color: white;
-        font-family: 'Arial', monospace;
-        font-weight: bold;
+        font-family: 'Raleway', monospace;
+        font-variant-numeric: lining-nums;
+        -moz-font-feature-settings:"lnum" 1; 
+        -moz-font-feature-settings:"lnum=1"; 
+        -ms-font-feature-settings:"lnum" 1; 
+        -o-font-feature-settings:"lnum" 1; 
+        -webkit-font-feature-settings:"lnum" 1; 
+        font-feature-settings:"lnum" 1;
       }
 
       .hide {
@@ -199,114 +358,85 @@
       }
 
       .screen {
-        background-color: #333;
-        width: 620px;
-        height: 65px;
-      }
-
-      /*MAIN_SCREEN*/
-      .amountRaisedHead,
-      .timerHead {
-        color: #fff;
-        width: 310px;
-        position: absolute;
-        font-size: 30px;
-        height: 30px;
-        line-height: 30px;
+        background-color: #005580;
+        width: 500px;
+        height: 220px;
       }
 
       .amountRaisedBody,
+      .donation,
+      .donationMessage,
+      .incentive,
+      .milestone,
+      .next-milestone,
+      .badge,
+      .largestDonator,
+      .lastDonator,
+      .advert{
+        color: white;
+        width: 500px;
+        position: absolute;
+        font-size: 64px;
+        padding:0px;
+        height: 190px;
+        white-space: normal;
+        font-weight: 700;
+        text-align: center;
+        font-style: italic;
+        top: 50px;
+        line-height: 64px;
+        text-transform: uppercase;
+      }
+
+      .donation,
+      .donationMessage,
+      .milestone,
+      .incentive,
+      .next-milestone,
+      .badge,
+      .largestDonator,
+      .lastDonator,
+      .advert{
+        font-size: 50px;
+        line-height: 50px;
+        height: 160px;
+      }
+
       .timerBody {
-        color: #26c2eb;
-        width: 310px;
+        width: 500px;
         position: absolute;
-        font-size: 35px;
-        height: 35px;
-        line-height: 35px;
-        top: 30px;
-      }
-
-      .amountRaisedHead,
-      .amountRaisedBody {
-        text-align: left;
-      }
-
-      .timerHead,
-      .timerBody {
-        left: 310px;
-        text-align: right;
-      }
-
-      /*DONATION_SCREEN*/
-      .donationHead,
-      .donationFrom {
-        color: #fff;
-        width: 310px;
-        position: absolute;
-        font-size: 30px;
-        font-size: 30px;
-        height: 30px;
-        line-height: 30px;
-      }
-
-      .donationFrom {
-        top: 30px;
-        color: #26c2eb;
-        font-size: 35px;
-        height: 35px;
-        line-height: 35px;
-      }
-
-      .donationAmount {
-        color: #26c2eb;
-        width: 310px;
-        position: absolute;
-        font-size: 65px;
-        line-height: 65px;
-        height: 65px;
-        left: 310px;
-        top: 0px;
-        text-align: right;
-      }
-
-      /*DONATION_MESSAGE_SCREEN*/
-      .donationMessageFrom {
-        width: 620px;
-        position: absolute;
-        color: #26c2eb;
-        font-size: 35px;
-        line-height: 35px;
+        line-height: 32px;
+        font-weight: 700;
         text-align: center;
+        padding-top: 9px;
+        background-image: url("https://i.imgur.com/Ji2f6ik.png");
+        background-size: 185px 40px;
+        background-position: 155px;
+        background-repeat: no-repeat;
+        top:0px;
+        height:50px;
+        font-size: 32px;
+        color:black;
+        letter-spacing: 3px;
+        text-transform: uppercase;
       }
 
-      .donationMessageHead {
-        width: 620px;
+      .timeUntilLabel{
+        width: 500px;
         position: absolute;
-        color: #fff;
-        font-size: 18px;
-        line-height: 30px;
-        top: 35px;
-        text-align: center;
+        line-height: 32px;
+        top:-2px;
+        height:50px;
+        font-size: 14px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
       }
 
-      /*ADVERT_SCREEN*/
-      .advert {
-        width: 620px;
-        position: absolute;
-        color: #fff;
-        font-size: 35px;
-        line-height: 30px;
-        top: 15px;
-        text-align: center;
-      }
-
-      /*LARGEST_DONO_SCREEN*/
-      .largestDonator {
-        width: 620px;
-        position: absolute;
-        color: #fff;
-        font-size: 30px;
-        line-height: 30px;
-        top: 15px;
-        text-align: center;
+      .countdown{
+          background-size: 400px 40px;
+          line-height: 23px;
+          font-weight: 700; 
+          font-size: 23px;
+          padding-top: 12px;
+          letter-spacing: 3px;
       }</style><script defer="defer" src="bundle.min.js"></script></head><body><div id="app"></div></body></html>

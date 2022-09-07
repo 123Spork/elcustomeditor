@@ -132,5 +132,41 @@
       "badgeImageURL": "https://assets.donordrive.com/try/images/$event1444$/badge_420B949E_A0B7_558B_57164EF78EF9992E.png",
       "badgeCode": "log-1-000-activity-units"
     }
+  ],
+  "incentives": [
+    {
+      "amount": 10,
+      "description": "I'll give you a personal shoutout on stream!",
+      "incentiveImageURL": "https://assets.donordrive.com/extralife/images/$constituents$/98DEB758-C29F-F29A-66B83598945B70D1/deedee.jpg",
+      "quantity": 5,
+      "quantityClaimed": 0,
+      "links": {
+        "donate": "https://try.donordrive.com/index.cfm?fuseaction=donordrive.participant&participantID=15882&incentiveID=DBAC7F77-D0D0-A244-C3879E9BC1B5AC06#donate"
+      },
+      "incentiveID": "DBAC7F77-D0D0-A244-C3879E9BC1B5AC06",
+      "isActive": true
+    },
+    {
+      "endDateUTC": "2021-04-14T07:00:00.0+0000",
+      "amount": 22,
+      "description": "Spin the prize wheel!",
+      "quantity": 5,
+      "quantityClaimed": 0,
+      "incentiveID": "74885F1C-0A20-4CA1-011F56911302E557",
+      "isActive": false,
+      "startDateUTC": "2021-04-01T07:00:00.0+0000"
+    },
+    {
+      "amount": 50,
+      "description": "Choose my Mario Kart character!",
+      "incentiveImageURL": "https://assets.donordrive.com/extralife/images/$constituents$/98DEB758-C29F-F29A-66B83598945B70D1/deedee.jpg",
+      "quantity": 1,
+      "quantityClaimed": 0,
+      "links": {
+        "donate": "https://try.donordrive.com/index.cfm?fuseaction=donordrive.participant&participantID=15882&incentiveID=DBB0826A-F48D-319A-DE3F070C2CC46D7F#donate"
+      },
+      "incentiveID": "DBB0826A-F48D-319A-DE3F070C2CC46D7F",
+      "isActive": true
+    }
   ]
 }

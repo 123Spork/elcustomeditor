@@ -1,4 +1,4 @@
-import config, { getConfig } from './config/config'
+import { getConfig } from './config/config'
 import {
   ExtraLifeManager,
   Donation,
@@ -10,11 +10,12 @@ import {
   ScreenManager,
   ScreenFunction
 } from './managers'
-import { Badge, Milestone } from './managers/extraLifeManager'
+import { Badge, Incentive, Milestone } from './managers/extraLifeManager'
 
 export interface ScreenData {
   donation?: Donation
   donations?: Donation[]
+  incentives: Incentive[]
   badges: Badge[]
   largestDonation?: Donation
   lastDonation?: Donation
@@ -35,19 +36,21 @@ export default class Controller {
     onTimerTick: (timerTick: TimerContent) => void
     onNewDonations: (newDonations: Donation[]) => Promise<void>
     onMilestonesReached: (milestones: Milestone[]) => Promise<void>
+    onIncentivesPurchased: (incentives: Incentive[]) => Promise<void>
     onBadgesObtained: (badges: Badge[]) => Promise<void>
     onExtraLifeLoaded: () => Promise<void>
   }) {
     this.soundManager = new SoundManager()
     this.screenManager = new ScreenManager()
     this.timeManager = new TimeManager(
-      config.main.eventStartTimestamp,
+      getConfig().main.eventStartTimestamp,
       callbacks.onTimerTick
     )
     this.extraLifeManager = new ExtraLifeManager({
       onLoaded: callbacks.onExtraLifeLoaded,
       onNewDonations: callbacks.onNewDonations,
       onMilestonesReached: callbacks.onMilestonesReached,
+      onIncentivesPurchased: callbacks.onIncentivesPurchased,
       onBadgesObtained: callbacks.onBadgesObtained
     })
   }
@@ -95,6 +98,10 @@ export default class Controller {
 
   getTimer() {
     return this.timeManager.currentTick
+  }
+
+  isTimerCountingDown() {
+    return this.timeManager.isCountingDown()
   }
 
   getPage() {
@@ -152,6 +159,7 @@ export default class Controller {
       participant: this.extraLifeManager.participant as Participant,
       team: this.extraLifeManager.team as Team,
       donations: this.extraLifeManager.donations,
+      incentives: this.extraLifeManager.incentives,
       badges: this.extraLifeManager.badges,
       largestDonation: largestDonation,
       lastDonation: lastDonation,
