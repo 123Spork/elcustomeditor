@@ -397,6 +397,9 @@ class Main extends React.Component {
   }
 
   async downloadPack() {
+    if(!localStorage.getItem('el_globalconfiguration')){
+      await this.saveOutput()
+    }
     const date = (document.getElementById('dateStamp') as HTMLInputElement)
       .value
     const [first, second] = date.split(',').map((item) => item.trim())
@@ -448,9 +451,28 @@ screens:${this.state.advancedScreens}}`
               throw err // or handle the error
             }
             zip.file('assets/sounds/soundNotFound.mp3', data, { binary: true })
-            await zip.generateAsync({ type: 'blob' }).then(function(blob) {
-              saveAs(blob, 'ExtraLifeHelper.zip')
-            })
+            
+            JSZipUtils.getBinaryContent(
+              './assets/fonts/Raleway-Italic-VariableFont_wght.ttf',
+              async function(err: Error, data: any) {
+                if (err) {
+                  throw err // or handle the error
+                }
+                zip.file('assets/fonts/Raleway-Italic-VariableFont_wght.ttf', data, { binary: true })
+            
+                JSZipUtils.getBinaryContent(
+                  './assets/fonts/Raleway-VariableFont_wght.ttf',
+                  async function(err: Error, data: any) {
+                    if (err) {
+                      throw err // or handle the error
+                    }
+                    zip.file('assets/fonts/Raleway-VariableFont_wght.ttf', data, { binary: true })
+
+                    await zip.generateAsync({ type: 'blob' }).then(function(blob) {
+                      saveAs(blob, 'ExtraLifeHelper.zip')
+                    })
+                  })
+                })
           }
         )
       }

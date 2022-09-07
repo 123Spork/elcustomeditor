@@ -355,7 +355,12 @@
       }
     </script>
     <style id="advancedStyle">
-@import url(//fonts.googleapis.com/css?family=Raleway:400,100,200,300,500,600,800,700,900);
+@font-face {
+  font-family: Raleway;
+  src: url('./assets/fonts/Raleway-VariableFont_wght.ttf') format("truetype-variations"), 
+  url('./assets/fonts/Raleway-Italic-VariableFont_wght.ttf') format("truetype-variations");
+  font-weight: 1 999;
+}
 
 body{
   margin: 0px;
@@ -428,12 +433,11 @@ body{
   line-height: 32px;
   font-weight: 700;
   text-align: center;
-  padding-top: 9px;
   background-image: url("https://i.imgur.com/Ji2f6ik.png");
   background-size: 185px 40px;
-  background-position: 155px;
+  background-position: 155px -9px;
   background-repeat: no-repeat;
-  top:0px;
+  top:9px;
   height:50px;
   font-size: 32px;
   color:black;
