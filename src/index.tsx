@@ -178,7 +178,7 @@ class Main extends React.Component {
           advancedEvents: eventsMatch
             ? eventsMatch[0].replace(/^.{8}/gm, '')
             : '',
-          advancedStyling: style.replace(/^.{6}/gm, '')
+          advancedStyling: style
         })
       } else {
         const head = document.getElementsByTagName('head')[0]
