@@ -1,3 +1,4 @@
+export {PopupManager} from './popupManager'
 export {ExtraLifeManager, Team, Participant, Donation} from './extraLifeManager'
 export {ScreenManager, ScreenFunction} from './screenManager'
 export {SoundManager} from './soundManager'

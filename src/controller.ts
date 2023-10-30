@@ -1,6 +1,7 @@
 import { getConfig } from './config/config'
 import {
   ExtraLifeManager,
+  PopupManager,
   Donation,
   Participant,
   Team,
@@ -27,6 +28,7 @@ export interface ScreenData {
 }
 
 export default class Controller {
+  popupManager: PopupManager
   screenManager: ScreenManager
   soundManager: SoundManager
   timeManager: TimeManager
@@ -40,6 +42,7 @@ export default class Controller {
     onBadgesObtained: (badges: Badge[]) => Promise<void>
     onExtraLifeLoaded: () => Promise<void>
   }) {
+    this.popupManager = new PopupManager()
     this.soundManager = new SoundManager()
     this.screenManager = new ScreenManager()
     this.timeManager = new TimeManager(
@@ -102,6 +105,10 @@ export default class Controller {
 
   isTimerCountingDown() {
     return this.timeManager.isCountingDown()
+  }
+
+  launchPopup(category:string):string{
+    return this.popupManager.launchRandomPopup(category)
   }
 
   getPage() {

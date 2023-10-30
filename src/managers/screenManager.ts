@@ -10,6 +10,7 @@ export interface Screen {
   data: Record<string, unknown>
   controller: unknown
   timeToShow?: number
+  template?: string
 }
 
 export class ScreenManager {
@@ -39,11 +40,12 @@ export class ScreenManager {
     ;(document.getElementById(
       'scene'
     ) as HTMLDivElement).innerHTML = mustache.render(template, screen.data)
+    return template
   }
 
   async processNextScreen() {
     this.currentScreen = this.queuedScreens[0]
-    await this.loadScreen(this.currentScreen)
+    this.currentScreen.template = await this.loadScreen(this.currentScreen)
     window.setTimeout(() => {
       this.queuedScreens.splice(0, 1)
       this.isDirty = true
@@ -59,7 +61,7 @@ export class ScreenManager {
       return
     }
     this.currentScreen.data = { ...this.currentScreen.data, ...dataOverrides }
-    const template = await this.currentScreen.configuration(
+    const template = this.currentScreen.template || await this.currentScreen.configuration(
       this.currentScreen.data,
       this.currentScreen.controller
     )

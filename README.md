@@ -33,7 +33,9 @@ The file is laid out as follows.
     eventStartTimestamp: number //event start time
     soundVolume: number //volume of the application sounds (either synthetic speech or otherwise)
     speechLanguage: string //spoken language of the speaking tools,
+    speechUrl: string// url path for base64 tts
     mockEnabled?: boolean //enables developer mode,
+    popupsEnabled?: boolean //enabled onscreen popup system (tba)
   }
   screens: {
     [key: string]: (

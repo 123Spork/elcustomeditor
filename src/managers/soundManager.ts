@@ -36,7 +36,7 @@ export class SoundManager {
       return
     }
      const config: AxiosRequestConfig = {
-      url: `https://google-tts-proxy.herokuapp.com/base64`,
+      url: getConfig().main.speechUrl,
       method: 'POST',
       data: { msg: speechText, language: getConfig().main.speechLanguage }
     }

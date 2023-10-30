@@ -5,7 +5,9 @@ Window.globalConfiguration = {
     eventStartTimestamp: 1662421458000,
     soundVolume: 1,
     speechLanguage: 'en',
-    mockEnabled: true
+    speechUrl: 'http://localhost:5000/base64',
+    mockEnabled: true,
+    popupsEnabled: false
   },
   callbacks: {
     onStart: (data, controller) => {

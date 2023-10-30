@@ -8,7 +8,9 @@ export interface Config {
     eventStartTimestamp: number
     soundVolume: number
     speechLanguage: string
+    speechUrl: string
     mockEnabled?: boolean
+    popupsEnabled: boolean
   }
   screens: {
     [key: string]: ScreenFunction

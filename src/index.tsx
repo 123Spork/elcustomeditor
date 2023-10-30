@@ -396,6 +396,25 @@ class Main extends React.Component {
     }
   }
 
+  triggerDonationWithChaosIncentiveAndMessage() {
+    const amount =
+      Number(
+        (document.getElementById('donoAmount') as HTMLInputElement).value
+      ) || 20
+
+    if (this.app && this.app.controller.extraLifeManager.team != null) {
+      this.app.controller.extraLifeManager.createDonationMock(
+        createDono(
+          this.app,
+          amount,
+          'Joseph Jones',
+          'So long and thanks for all the fish',
+          'DBB0826E-F48D-319A-DE3F070C2CC46D7F'
+        )
+      )
+    }
+  }
+
   async downloadPack() {
     if(!localStorage.getItem('el_globalconfiguration')){
       await this.saveOutput()
@@ -553,6 +572,18 @@ screens:${this.state.advancedScreens}}`
                   )}
                 >
                   Trigger Donation With Incentive & Message for Amount
+                </Button>
+              </InputGroup>
+            </Row>
+            <Row xs="auto">
+              <InputGroup className="mb-2">
+                <Button
+                  variant="success"
+                  onClick={this.triggerDonationWithChaosIncentiveAndMessage.bind(
+                    this
+                  )}
+                >
+                  Trigger Chaos Incentive With Message for Amount
                 </Button>
               </InputGroup>
             </Row>
